@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">BluetoothTutorial</string>
+    <string name="title_activity_connect_to_device">SearchForBTDevicesActivity</string>
+    <string name="title_activity_base_comm">BaseCommActivity</string>
+    <string name="ConnectToTarget">Connect to Rasp Pi</string>
+    <string name="baseCommActStringReceived">String Received</string>
+    <string name="baseCommActStringReceivedHint">Nothing Received Yet</string>
+    <string name="baseCommActStringSend">String To Send</string>
+    <string name="baseCommActStringSendHint">Message to be sent to Smart AVL device</string>
+
+
+    <string name="closeButton">Close</string>
+    <string name="sendButton">Send</string>
+</resources>
