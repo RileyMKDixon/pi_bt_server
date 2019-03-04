@@ -9,8 +9,11 @@
 #
 
 from  bluetooth import *
+import traceback
 
 class BluetoothServer:
+	
+	BUFFER_SIZE = 2048
 	
 	def __init__(self, name):
 		self.server_sock = BluetoothSocket(RFCOMM)
@@ -31,7 +34,7 @@ class BluetoothServer:
 						  service_classes = [self.uuid, SERIAL_PORT_CLASS],
 						  profiles = [SERIAL_PORT_PROFILE])
 		
-		print("Waiting for attempted connection...\n")
+		print("Waiting for attempted connection...")
 		print("Looking on RFCOMM channel: " + str(self.Port))
 		
 		#next call is blocking
@@ -40,20 +43,37 @@ class BluetoothServer:
 		self.isConnected = True
 	
 	def closeConnection(self):
+		print("Closing connection")
 		self.client_sock.close()
 		self.server_sock.close()
 		self.client_info = None
 		self.isConnected = None
 		self.Port = None
-
-newServer = BluetoothServer("Smart AVL")
-newServer.waitForConnection()
+	
+	def read(self):
+		pass
+		
+	def write(self, msgToSend):
+		pass
 
 while(True):
-	stringReceived = newServer.client_sock.recv(1024)
-	if(stringReceived.length == 0):
-		break
-	print("Client sent: " + str(stringReceived))
+	newServer = BluetoothServer("Smart AVL")
+	newServer.waitForConnection()
+	while(True):
+		try:
+			bytesReceived = newServer.client_sock.recv(newServer.BUFFER_SIZE)
+			stringReceived = bytesReceived.decode(sys.stdout.encoding)
+			if(len(stringReceived) == 0):
+				break
+			print("Client sent: " + str(stringReceived))
+			newServer.client_sock.send(stringReceived.encode(sys.stdout.encoding))
+		except BluetoothError as bte:
+			print("Bluetooth error occured")
+			traceback.print_tb(bte.__traceback__)
+			break;
+			
+	newServer.closeConnection()
+
+			
 	
-newServer.closeConnection()
 	
