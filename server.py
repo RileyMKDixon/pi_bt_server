@@ -17,14 +17,9 @@ import copy
 import sys
 import time
 
-class BluetoothServer():
+class BluetoothServer(threading.Thread):
 	
 	BUFFER_SIZE = 2048
-	queueNotEmptyCV = None
-	queueNotFullCV = None
-	RWqueue = None
-	reader = None
-	writer = None
 
 	class WriteThread(threading.Thread):
 		def stringPresent(self):
@@ -33,12 +28,12 @@ class BluetoothServer():
 		def asyncWrite(self):
 			with self.stringAvailable:
 				self.stringAvailable.wait_for(self.stringPresent)
-				self.stringSemaphore.acquire()
-				self.client_sock.send(self.stringToSend.encode(sys.stdout.encoding))
-				print("WT: " + self.stringToSend)
+				if(self.continueRunning): #If false, skip as stopRunning() has been called.
+					self.stringSemaphore.acquire()
+					self.client_sock.send(self.stringToSend.encode(sys.stdout.encoding))
 
-				self.stringToSend = None
-				self.stringSemaphore.release()
+					self.stringToSend = None
+					self.stringSemaphore.release()
 
 		#This is the function to be called externally.
 		#asyncWrite is called internally by the thread.
@@ -64,38 +59,50 @@ class BluetoothServer():
 				self.asyncWrite()
 
 		def stopRunning(self):
-			raise SystemExit
+			self.continueRunning = False #Allow our thread to exit normally
+			self.stringAvailable.notify() #In case we are currently blocked, unblock
+			
 	
-	class ReadThread(threading.Thread):
-		def read(self):
-			with self.queueNotFullCV:
-				self.queueNotFullCV.wait_for(self.queueNotFull)
-				#self.RWqueue.put(stringToPut)
-				bytesReceived = self.client_sock.recv(2048)
-				stringReceived = bytesReceived.decode(sys.stdout.encoding)
-				self.RWqueue.put(stringReceived)
-				print("RT: " + stringReceived)
-				
-		def queueNotFull(self):
-			return not self.RWqueue.full()
+	#class ReadThread(threading.Thread):
+	#Like WriteThread, this function is too be called internally only
+	def asyncRead(self):
+		with self.queueNotFullCV:
+			self.queueNotFullCV.wait_for(self.queueNotFull)
+			#self.RWqueue.put(stringToPut)
+			bytesReceived = self.client_sock.recv(2048)
+			stringReceived = bytesReceived.decode(sys.stdout.encoding)
+			self.RWqueue.put(stringReceived)
+			print("RT: " + stringReceived)
+			
+	def queueNotFull(self):
+		return not self.RWqueue.full()
 
-		def __init__(self, RWqueue, client_sock):
-			threading.Thread.__init__(self)
-			self.continueRunning = True
-			self.queueNotFullCV = threading.Condition()
-			self.RWqueue = RWqueue
-			self.client_sock = client_sock
+	def read(self):
+		if self.RWqueue.empty():
+			result = None
+		else:
+			result = self.RWqueue.get()
+		return result
+		
+	def write(self, msgToSend):
+		if(self.writer is None):
+			raise TypeError("Writer not initialized. Has BluetoothServer been started?")
+		if(isinstance(msgToSend, str)):
+			raise TypeError("Passed Variable must be of type String")
+		self.writer.write(msgToSend)
 
-		def run(self):
-			while self.continueRunning:
-				self.read()
 
-		def stopRunning(self):
-			raise SystemExit
+	#def run(self):
+	#	while self.continueRunning:
+	#		self.read()
+
+	#def stopRunning(self):
+	#	raise SystemExit
+
 	#-------------END INNER CLASSES----------------
 
 	def __init__(self):
-		#threading.Thread.__init__(self)
+		threading.Thread.__init__(self)
 		self.server_sock = BluetoothSocket(RFCOMM)
 		self.server_sock.bind(("", PORT_ANY))
 		self.client_sock = None
@@ -107,23 +114,20 @@ class BluetoothServer():
 		self.Port = None
 
 		self.RWqueue = queue.Queue()
-		
+		self.continueRunning = True
+		self.queueNotFullCV = threading.Condition()
+		self.writer = None
 
 	
 	def run(self):
 		while(True):
 			self.waitForConnection()
-			self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
+			#self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
 			self.writer = BluetoothServer.WriteThread(self.client_sock)
-			self.reader.start()
 			self.writer.start()
-			count = 0
-			while(self.isConnected):
+			while(self.isConnected and self.continueRunning):
 				try:
-					stringRead = self.read()
-					if(stringRead is not None):
-						self.write(stringRead)
-
+					self.asyncRead()
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
 					traceback.print_tb(bte.__traceback__)
@@ -149,25 +153,21 @@ class BluetoothServer():
 	
 	def closeConnection(self):
 		print("Closing connection")
-		self.reader.stopRunning()
 		self.writer.stopRunning()
 		self.client_sock.close()
 		self.server_sock.close()
 		self.client_info = None
 		self.isConnected = False
+		self.continueRunning = False
 		self.Port = None
 	
-	def read(self):
-		if self.RWqueue.empty():
-			return None
-		else:
-			return self.RWqueue.get()
-		
-	def write(self, msgToSend):
-		self.writer.write(msgToSend)
+	
 
 newServer = BluetoothServer()
 newServer.run()
+
+for i in range(1,100):
+	newServer.write(str(i))
 
 # newServer = BluetoothServer()
 # newServer.start()
