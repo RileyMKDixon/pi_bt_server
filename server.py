@@ -138,7 +138,7 @@ class BluetoothServer(threading.Thread):
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
 					traceback.print_tb(bte.__traceback__)
-					self.isConnected = False
+					self.continueRunning = 
 			if(self.continueRunning): #If we want to stop running, we have already closed everything.
 				self.closeConnection()
 		print("End main Thread run()")
@@ -182,7 +182,7 @@ while(not newServer.isConnected):
 	time.sleep(0.5) #admittedly a hack to force the system to wait until a connection
 					#has been established
 try:
-	for i in range(1,10):
+	for i in range(1,1000000):
 		newServer.write(str(i))
 except Exception:
 	print("Oops")
