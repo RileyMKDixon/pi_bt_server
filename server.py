@@ -104,13 +104,14 @@ class BluetoothServer():
 		self.Port = None
 
 		self.RWqueue = queue.Queue()
-		self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
-		self.writer = BluetoothServer.WriteThread(self.client_sock)
+		
 
 	
 	def run(self):
 		while(True):
 			self.waitForConnection()
+			self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
+			self.writer = BluetoothServer.WriteThread(self.client_sock)
 			self.reader.start()
 			self.writer.start()
 			while(self.isConnected):
