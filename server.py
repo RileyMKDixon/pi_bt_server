@@ -164,7 +164,7 @@ class BluetoothServer(threading.Thread):
 	
 
 newServer = BluetoothServer()
-newServer.run()
+newServer.start()
 
 for i in range(1,100):
 	print("I")
