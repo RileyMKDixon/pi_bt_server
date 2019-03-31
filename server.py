@@ -117,7 +117,8 @@ class BluetoothServer():
 			while(self.isConnected):
 				try:
 					stringRead = self.read()
-					self.write(stringRead)
+					if(stringRead is not None):
+						self.write(stringRead)
 				
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
