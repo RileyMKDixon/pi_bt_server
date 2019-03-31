@@ -126,6 +126,7 @@ class BluetoothServer():
 					else:
 						self.write(str(count))
 						count = count + 1
+						time.sleep(1)
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
 					traceback.print_tb(bte.__traceback__)
