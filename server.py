@@ -117,12 +117,15 @@ class BluetoothServer():
 			self.writer = BluetoothServer.WriteThread(self.client_sock)
 			self.reader.start()
 			self.writer.start()
+			count = 0
 			while(self.isConnected):
 				try:
 					stringRead = self.read()
 					if(stringRead is not None):
 						self.write(stringRead)
-				
+					else:
+						self.write(str(count))
+						count = count + 1
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
 					traceback.print_tb(bte.__traceback__)
