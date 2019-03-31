@@ -167,6 +167,7 @@ newServer = BluetoothServer()
 newServer.run()
 
 for i in range(1,100):
+	print("I")
 	newServer.write(str(i))
 
 # newServer = BluetoothServer()
