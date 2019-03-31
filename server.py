@@ -15,6 +15,7 @@ import os
 import queue
 import copy
 import sys
+import time
 
 class BluetoothServer(threading.Thread):
 	
@@ -116,7 +117,7 @@ class BluetoothServer(threading.Thread):
 			self.writer.start()
 			while(self.isConnected):
 				try:
-					print("Hello")
+					time.sleep(1)
 				
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
