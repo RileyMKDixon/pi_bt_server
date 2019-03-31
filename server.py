@@ -160,11 +160,16 @@ class BluetoothServer(threading.Thread):
 		self.isConnected = False
 		self.continueRunning = False
 		self.Port = None
+		self.writer = None
 	
 	
 
 newServer = BluetoothServer()
 newServer.start()
+
+if(not newServer.isConnected):
+	time.sleep(0.5) #admittedly a hack to force the system to wait until a connection
+					#has been established
 
 for i in range(1,100):
 	print("I")
