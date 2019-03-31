@@ -17,7 +17,7 @@ import copy
 import sys
 import time
 
-class BluetoothServer(threading.Thread):
+class BluetoothServer():
 	
 	BUFFER_SIZE = 2048
 	queueNotEmptyCV = None
@@ -92,7 +92,7 @@ class BluetoothServer(threading.Thread):
 	#-------------END INNER CLASSES----------------
 
 	def __init__(self):
-		threading.Thread.__init__(self)
+		#threading.Thread.__init__(self)
 		self.server_sock = BluetoothSocket(RFCOMM)
 		self.server_sock.bind(("", PORT_ANY))
 		self.client_sock = None
@@ -104,8 +104,6 @@ class BluetoothServer(threading.Thread):
 		self.Port = None
 
 		self.RWqueue = queue.Queue()
-		#self.queueNotFullCV = threading.Condition()
-		#self.queueNotEmptyCV = threading.Condition()
 		self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
 		self.writer = BluetoothServer.WriteThread(self.client_sock)
 
@@ -161,7 +159,8 @@ class BluetoothServer(threading.Thread):
 	def write(self, msgToSend):
 		self.writer.write(msgToSend)
 
-
+newServer = BluetoothServer()
+newServer.run()
 
 # newServer = BluetoothServer()
 # newServer.start()
