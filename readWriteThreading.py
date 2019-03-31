@@ -21,9 +21,10 @@ class ReadThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self.continueRunning = True
 
     def run(self):
-        while True:
+        while self.continueRunning:
             self.read()
 
 
@@ -43,9 +44,10 @@ class WriteThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self.continueRunning = True
 
     def run(self):
-        while True:
+        while self.continueRunning:
             passThisString = input("String to send: ")
             self.write(passThisString)
 
