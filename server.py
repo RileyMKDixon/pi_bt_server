@@ -35,6 +35,8 @@ class BluetoothServer():
 				self.stringAvailable.wait_for(self.stringPresent)
 				self.stringSemaphore.acquire()
 				self.client_sock.send(self.stringToSend.encode(sys.stdout.encoding))
+				print("WT: " + self.stringToSend)
+
 				self.stringToSend = None
 				self.stringSemaphore.release()
 
@@ -72,6 +74,7 @@ class BluetoothServer():
 				bytesReceived = self.client_sock.recv(2048)
 				stringReceived = bytesReceived.decode(sys.stdout.encoding)
 				self.RWqueue.put(stringReceived)
+				print("RT: " + stringReceived)
 				
 		def queueNotFull(self):
 			return not self.RWqueue.full()
