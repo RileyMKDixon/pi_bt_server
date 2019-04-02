@@ -79,7 +79,7 @@ class BluetoothServer(threading.Thread):
 				bytesReceived = self.client_sock.recv(2048)
 				stringReceived = bytesReceived.decode(sys.stdout.encoding)
 				self.RWqueue.put(stringReceived)
-				print("RT: " + stringReceived)
+				#print("RT: " + stringReceived)
 			
 	def queueNotFull(self):
 		return not self.RWqueue.full()
@@ -132,13 +132,15 @@ class BluetoothServer(threading.Thread):
 			#self.reader = BluetoothServer.ReadThread(self.RWqueue, self.client_sock)
 			self.writer = BluetoothServer.WriteThread(self.client_sock)
 			self.writer.start()
+			#self.isConnected = True here instead of in waitForConnection()
 			while(self.isConnected and self.continueRunning):
 				try:
 					self.asyncRead()
 				except BluetoothError as bte:
 					print("Bluetooth Error Occurred")
 					traceback.print_tb(bte.__traceback__)
-					self.continueRunning = True
+					self.stopServer()
+					#self.continueRunning = True
 			if(self.continueRunning): #If we want to stop running, we have already closed everything.
 				self.closeConnection()
 		print("End main Thread run()")
